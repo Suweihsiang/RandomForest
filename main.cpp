@@ -1,5 +1,6 @@
 #include"data.h"
 #include"Label.h"
+#include"DecisionTree.h"
 #include<unordered_set>
 #include<Python.h>
 #include"matplotlibcpp.h"
@@ -29,6 +30,12 @@ int main(int argc, char** argv) {
     lb.transform(raw_data, { 5 });
     unordered_map<string, vector<string>> data = lb.get_data();
     Data<double> df(data, true, false);
-    df.print();
+    MatrixXd mat = df.getMatrix();
+    MatrixXd x = mat.block(0, 0, mat.rows(), mat.cols() - 1);
+    VectorXd y = mat.col(mat.cols() - 1);
+    Decision_Tree dt;
+    dt.get_params();
+    dt.fit(x, y,lb.get_classes(), df.getFeatures());
+
     return 0;
 }
