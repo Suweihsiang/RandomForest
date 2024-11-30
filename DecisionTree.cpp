@@ -8,6 +8,12 @@ void Decision_Tree::set_params(unordered_map<string, double>params) {
 	if (params.find("max_depth") != params.end()) {
 		max_depth = params["max_depth"];
 	}
+	if (params.find("min_sample_split") != params.end()) {
+		min_sample_split = params["min_sample_split"];
+	}
+	if (params.find("min_sample_leaf") != params.end()) {
+		min_sample_leaf = params["min_sample_leaf"];
+	}
 	if (params.find("min_impurity_decrease") != params.end()) {
 		min_impurity_decrease = params["min_impurity_decrease"];
 	}
@@ -142,8 +148,15 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 		VectorXd data_i = node->data.col(i);
 		crit_split = threshold(data_i, y, i, crit_split, features, node);
 	}
-	if (node->left->criteria == 0 || curr_depth + 1 > max_depth) { node->left->isLeaf = true; }
-	if (node->right->criteria == 0 || curr_depth + 1 > max_depth) { node->right->isLeaf = true; }
+	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {
+		node->left = nullptr;
+		node->right = nullptr;
+		node->isLeaf = true;
+		depth = max(--curr_depth, depth);
+		return;
+	}
+	if (node->left->criteria == 0 || curr_depth + 1 > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
+	if (node->right->criteria == 0 || curr_depth + 1 > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
 
 	cout << "Split threashold : " << node->feature << "<=" << node->threshold << endl;
 	cout << "node criteria = " << node->criteria << endl;

@@ -49,6 +49,8 @@ private:
 	int depth = 1;
 	string criterion = "gini";
 	int max_depth = INT_MAX;
+	int min_sample_split = 2;
+	int min_sample_leaf = 1;
 	double min_impurity_decrease = 0.0;
 	vector<string>classes;
 	map<int, int>label_count(VectorXd& data);
