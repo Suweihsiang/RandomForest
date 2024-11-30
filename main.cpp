@@ -34,10 +34,12 @@ int main(int argc, char** argv) {
     MatrixXd x = mat.block(0, 0, mat.rows(), mat.cols() - 1);
     VectorXd y = mat.col(mat.cols() - 1);
     Decision_Tree dt;
+    dt.set_params({ {"max_depth",3} });
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), df.getFeatures());
     VectorXd y_pred = dt.predict(x, df.getFeatures());
     double score = dt.score(x, y, df.getFeatures());
+    cout << y_pred.transpose() << endl;
     cout << score << endl;
 
     return 0;

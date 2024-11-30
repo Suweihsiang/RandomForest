@@ -17,11 +17,11 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::string;
 using std::vector;
-using std::pair;
 using std::map;
 using std::unordered_map;
 using std::set;
 using std::sort;
+using std::max;
 
 struct Node {
 	MatrixXd data;
@@ -46,6 +46,7 @@ public:
 	double score(MatrixXd x, VectorXd y,vector<string>features);
 private:
 	Node Root;
+	int depth = 1;
 	string criterion = "gini";
 	int max_depth = INT_MAX;
 	double min_impurity_decrease = 0.0;

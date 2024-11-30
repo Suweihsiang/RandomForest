@@ -133,15 +133,17 @@ double Decision_Tree::threshold(VectorXd& x, VectorXd& y, int col, double crit, 
 
 void Decision_Tree::split(Node* node, vector<string>features) {
 	cout << "------------------------------------" << endl;
-	if (node->isLeaf) { return; }
+	static int curr_depth = 1;
+	if (node->isLeaf) { depth = max(curr_depth,depth); return; }
+	curr_depth++;
 	double crit_split = 1;
 	VectorXd y = node->data.col(node->data.cols() - 1);
 	for (int i = 0; i < node->data.cols() - 1; i++) {
 		VectorXd data_i = node->data.col(i);
 		crit_split = threshold(data_i, y, i, crit_split, features, node);
 	}
-	if (node->left->criteria == 0) { node->left->isLeaf = true; }
-	if (node->right->criteria == 0) { node->right->isLeaf = true; }
+	if (node->left->criteria == 0 || curr_depth + 1 > max_depth) { node->left->isLeaf = true; }
+	if (node->right->criteria == 0 || curr_depth + 1 > max_depth) { node->right->isLeaf = true; }
 
 	cout << "Split threashold : " << node->feature << "<=" << node->threshold << endl;
 	cout << "node criteria = " << node->criteria << endl;
@@ -162,6 +164,7 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 
 	split(node->left, features);
 	split(node->right, features);
+	curr_depth--;
 }
 
 void Decision_Tree::predict_node(Node* node, MatrixXd& x, VectorXd& y_pred, vector<string>features) {
