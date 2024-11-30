@@ -33,6 +33,24 @@ void Decision_Tree::fit(MatrixXd& x, VectorXd& y, map<int, set<string>>classes, 
 	split(node, features);
 }
 
+VectorXd Decision_Tree::predict(MatrixXd x, vector<string> features) {
+	VectorXd y_pred(x.rows());
+	x.conservativeResize(x.rows(), x.cols() + 1);
+	x.block(0, 1, x.rows(), x.cols() - 1) = x.block(0, 0, x.rows(), x.cols() - 1).eval();
+	x.col(0) = VectorXd::LinSpaced(x.rows(), 0, x.rows() - 1);
+	predict_node(&Root, x, y_pred, features);
+	return y_pred;
+}
+
+double Decision_Tree::score(MatrixXd x, VectorXd y,vector<string>features) {
+	VectorXd y_pred = predict(x, features);
+	double correct = 0;
+	for (int i = 0; i < y_pred.size(); i++) {
+		if (y_pred(i) == y(i)) { correct++; }
+	}
+	return correct / y_pred.size();
+}
+
 map<int,int> Decision_Tree::label_count(VectorXd& data) {
 	map<int, int>label_counts;
 	for (int d : data) {
@@ -144,4 +162,32 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 
 	split(node->left, features);
 	split(node->right, features);
+}
+
+void Decision_Tree::predict_node(Node* node, MatrixXd& x, VectorXd& y_pred, vector<string>features) {
+	if (node->isLeaf) {
+		auto cls = max_element(node->values.begin(), node->values.end(), [](const auto& left, const auto& right) {return left.second < right.second; });
+		for (int i = 0; i < x.rows(); i++) {
+			int idx = x(i, 0);
+			y_pred(idx) = cls->first;
+		}
+	}
+	else {
+		MatrixXd x_left, x_right;
+		vector<string>::iterator it = find(features.begin(), features.end(), node->feature);
+		int dist = distance(features.begin(), it);
+		for (int i = 0; i < x.rows(); i++) {
+			if (x(i, dist + 1) > node->threshold) {
+				x_right.conservativeResize(x_right.rows() + 1, x.cols());
+				x_right.row(x_right.rows() - 1) = x.row(i);
+			}
+			else {
+				x_left.conservativeResize(x_left.rows() + 1, x.cols());
+				x_left.row(x_left.rows() - 1) = x.row(i);
+			}
+		}
+		predict_node(node->left, x_left, y_pred, features);
+		predict_node(node->right, x_right, y_pred, features);
+	}
+	return;
 }

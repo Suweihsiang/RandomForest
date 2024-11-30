@@ -17,6 +17,7 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::string;
 using std::vector;
+using std::pair;
 using std::map;
 using std::unordered_map;
 using std::set;
@@ -41,6 +42,8 @@ public:
 	void set_params(unordered_map<string, double>params);
 	void get_params();
 	void fit(MatrixXd& x, VectorXd& y, map<int, set<string>>classes, vector<string>features);
+	VectorXd predict(MatrixXd x, vector<string>features);
+	double score(MatrixXd x, VectorXd y,vector<string>features);
 private:
 	Node Root;
 	string criterion = "gini";
@@ -52,6 +55,7 @@ private:
 	double calc_entropy(VectorXd& data, map<int, int>label_counts);
 	double threshold(VectorXd& x, VectorXd& y, int col, double gini, vector<string>features, Node* node);
 	void split(Node* node, vector<string>features);
+	void predict_node(Node* node, MatrixXd& x, VectorXd& y, vector<string>features);
 };
 
 #endif

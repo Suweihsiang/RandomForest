@@ -36,6 +36,9 @@ int main(int argc, char** argv) {
     Decision_Tree dt;
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), df.getFeatures());
+    VectorXd y_pred = dt.predict(x, df.getFeatures());
+    double score = dt.score(x, y, df.getFeatures());
+    cout << score << endl;
 
     return 0;
 }
