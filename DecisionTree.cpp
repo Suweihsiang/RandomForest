@@ -140,7 +140,8 @@ double Decision_Tree::threshold(VectorXd& x, VectorXd& y, int col, double crit, 
 void Decision_Tree::split(Node* node, vector<string>features) {
 	cout << "------------------------------------" << endl;
 	static int curr_depth = 1;
-	if (node->isLeaf) { depth = max(curr_depth,depth); return; }
+	node->node_layer = curr_depth;
+	if (node->isLeaf) {depth = max(curr_depth,depth); return; }
 	curr_depth++;
 	double crit_split = 1;
 	VectorXd y = node->data.col(node->data.cols() - 1);
@@ -158,6 +159,7 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 	if (node->left->criteria == 0 || curr_depth + 1 > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
 	if (node->right->criteria == 0 || curr_depth + 1 > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
 
+	cout << "node layer = " << node->node_layer << endl;
 	cout << "Split threashold : " << node->feature << "<=" << node->threshold << endl;
 	cout << "node criteria = " << node->criteria << endl;
 	cout << "node sample size = " << node->samples << endl;
@@ -177,6 +179,7 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 
 	split(node->left, features);
 	split(node->right, features);
+	node->node_depth += max(node->left->node_depth, node->right->node_depth) + 1;
 	curr_depth--;
 }
 

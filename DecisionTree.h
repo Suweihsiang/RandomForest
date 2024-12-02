@@ -31,6 +31,8 @@ struct Node {
 	int samples;
 	map<int, int>values;
 	bool isLeaf = false;
+	int node_layer;
+	int node_depth = 0;
 	Node* left;
 	Node* right;
 };
