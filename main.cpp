@@ -37,10 +37,15 @@ int main(int argc, char** argv) {
     //dt.set_params({ {"min_sample_split",7} });
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), df.getFeatures());
-    VectorXd y_pred = dt.predict(x, df.getFeatures());
+    vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
+    for (const auto p : path) {
+        cout << "ccp_alpha : " << p.first;
+        cout << ", impurity : " << p.second << endl;
+    }
+    /*VectorXd y_pred = dt.predict(x, df.getFeatures());
     double score = dt.score(x, y, df.getFeatures());
     cout << y_pred.transpose() << endl;
-    cout << score << endl;
+    cout << score << endl;*/
 
     return 0;
 }
