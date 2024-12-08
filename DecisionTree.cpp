@@ -14,6 +14,9 @@ void Decision_Tree::set_params(unordered_map<string, double>params) {
 	if (params.find("min_sample_leaf") != params.end()) {
 		min_sample_leaf = params["min_sample_leaf"];
 	}
+	if (params.find("ccp_alpha") != params.end()) {
+		ccp_alpha = params["ccp_alpha"];
+	}
 	if (params.find("min_impurity_decrease") != params.end()) {
 		min_impurity_decrease = params["min_impurity_decrease"];
 	}
@@ -23,7 +26,12 @@ void Decision_Tree::set_params(unordered_map<string, double>params) {
 }
 
 void Decision_Tree::get_params() {
-	cout << "criterion = " << criterion << ",max_depth = " << max_depth << ",min_impurity_decrease = " << min_impurity_decrease << endl;
+	cout << "criterion = " << criterion << ",max_depth = " << max_depth << ",min_sample_split = " << min_sample_split << ",min_sample_leaf = " << min_sample_leaf << endl ;
+	cout << "ccp_alpha = " << ccp_alpha << ",min_impurity_decrease = " << min_impurity_decrease << endl;
+}
+
+Node Decision_Tree::get_root() {
+	return Root;
 }
 
 void Decision_Tree::fit(MatrixXd& x, VectorXd& y, map<int, set<string>>classes, vector<string>features) {
@@ -39,7 +47,7 @@ void Decision_Tree::fit(MatrixXd& x, VectorXd& y, map<int, set<string>>classes, 
 	Root.values = label_counts;
 	Node* node = &Root;
 	split(node, features);
-	export_tree(node);
+	if (ccp_alpha > 0.0) { cost_complexity_pruning_path(); }
 }
 
 VectorXd Decision_Tree::predict(MatrixXd x, vector<string> features) {
@@ -73,11 +81,11 @@ vector<pair<double, double>> Decision_Tree::cost_complexity_pruning_path() {
 		path.push_back({ DBL_MAX,DBL_MAX });
 		iters++;
 		best_tree_map = cost_complexity_pruning(&r, best_tree_map, tree_map, path, iters);
-		Node pruning_tree = construct_pruning_tree(r,best_tree_map);
-		r = pruning_tree;
-		export_tree(&r);
+		if (ccp_alpha > 0.0 && path[iters].first > ccp_alpha) { break; }
+		construct_pruning_tree(r,best_tree_map);
 		tree_map.clear();
 	}
+	copy_tree(&r,&Root);
 	return path;
 }
 
@@ -294,10 +302,10 @@ int Decision_Tree::findparent(int number, map<int, vector<double>>& tree_map,int
 	else { return findparent(parent, tree_map, target); }
 }
 
-Node Decision_Tree::construct_pruning_tree(Node &tree,map<int, vector<double>>& tree_map) {
+void Decision_Tree::construct_pruning_tree(Node &tree,map<int, vector<double>>& tree_map) {
 	bool pruning = false;
 	traverse_node(&tree, tree_map,pruning);
-	return tree;
+	return ;
 }
 
 void Decision_Tree::traverse_node(Node* node, map<int, vector<double>>& tree_map,bool& pruning) {

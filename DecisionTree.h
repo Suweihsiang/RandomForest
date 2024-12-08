@@ -47,6 +47,7 @@ public:
 	~Decision_Tree();
 	void set_params(unordered_map<string, double>params);
 	void get_params();
+	Node get_root() ;
 	void fit(MatrixXd& x, VectorXd& y, map<int, set<string>>classes, vector<string>features);
 	VectorXd predict(MatrixXd x, vector<string>features);
 	double score(MatrixXd x, VectorXd y,vector<string>features);
@@ -59,6 +60,7 @@ private:
 	int max_depth = INT_MAX;
 	int min_sample_split = 2;
 	int min_sample_leaf = 1;
+	double ccp_alpha = 0.0;
 	double min_impurity_decrease = 0.0;
 	vector<string>classes;
 	map<int, int>label_count(VectorXd& data);
@@ -71,7 +73,7 @@ private:
 	void construct_treemap(Node *node,map<int, vector<double>>&tree_map);
 	map<int, vector<double>> cost_complexity_pruning(Node *node, map<int, vector<double>> &best_tree_map, map<int, vector<double>> &tree_map, vector<pair<double, double>>&path,int iters);
 	int findparent(int number, map<int, vector<double>>& tree_map,int target);
-	Node construct_pruning_tree(Node &tree,map<int, vector<double>>& tree_map);
+	void construct_pruning_tree(Node &tree,map<int, vector<double>>& tree_map);
 	void traverse_node(Node* node, map<int, vector<double>>& tree_map,bool &pruning);
 	void print(Node* node);
 	void adjust_parent_depth(Node* node);

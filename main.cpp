@@ -34,14 +34,16 @@ int main(int argc, char** argv) {
     MatrixXd x = mat.block(0, 0, mat.rows(), mat.cols() - 1);
     VectorXd y = mat.col(mat.cols() - 1);
     Decision_Tree dt;
-    //dt.set_params({ {"min_sample_split",7} });
+    dt.set_params({ {"ccp_alpha",0.008} });
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), df.getFeatures());
-    vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
+    Node r = dt.get_root();
+    dt.export_tree(&r);
+    /*vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     for (const auto p : path) {
         cout << "ccp_alpha : " << p.first;
         cout << ", impurity : " << p.second << endl;
-    }
+    }*/
     /*VectorXd y_pred = dt.predict(x, df.getFeatures());
     double score = dt.score(x, y, df.getFeatures());
     cout << y_pred.transpose() << endl;
