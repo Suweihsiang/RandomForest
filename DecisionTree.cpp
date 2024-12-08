@@ -83,9 +83,10 @@ vector<pair<double, double>> Decision_Tree::cost_complexity_pruning_path() {
 		best_tree_map = cost_complexity_pruning(&r, best_tree_map, tree_map, path, iters);
 		if (ccp_alpha > 0.0 && path[iters].first > ccp_alpha) { break; }
 		construct_pruning_tree(r,best_tree_map);
+		if (ccp_alpha == 0.0) { export_tree(&r); }
 		tree_map.clear();
 	}
-	copy_tree(&r,&Root);
+	if (ccp_alpha > 0.0) { copy_tree(&r, &Root); }
 	return path;
 }
 
