@@ -77,6 +77,7 @@ private:
 	void traverse_node(Node* node, map<int, vector<double>>& tree_map,bool &pruning);
 	void print(Node* node);
 	void adjust_parent_depth(Node* node);
+	void pruning_min_impurity_decrease(Node* node);
 };
 
 #endif

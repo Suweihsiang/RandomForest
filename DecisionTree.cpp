@@ -48,6 +48,7 @@ void Decision_Tree::fit(MatrixXd& x, VectorXd& y, map<int, set<string>>classes, 
 	Node* node = &Root;
 	split(node, features);
 	if (ccp_alpha > 0.0) { cost_complexity_pruning_path(); }
+	if (min_impurity_decrease > 0.0) { pruning_min_impurity_decrease(node); }
 }
 
 VectorXd Decision_Tree::predict(MatrixXd x, vector<string> features) {
@@ -348,4 +349,32 @@ void Decision_Tree::print(Node* node) {
 	for (auto p : node->values) { cout << p.first << ":" << p.second << ","; }
 	cout << "\b]" << endl;
 	cout << "--------------------------------------------------------------------" << endl;
+}
+
+void Decision_Tree::pruning_min_impurity_decrease(Node* node) {
+	if (node->isLeaf) { return; }
+	double N = Root.samples, N_t = node->samples;
+	double impurity = node->criteria;
+	double N_t_R = 0, N_t_L = 0;
+	double impurity_R = 0.0, impurity_L = 0.0;
+	if (node->right) {
+		N_t_R = node->right->samples;
+		impurity_R = node->right->criteria;
+	}
+	if (node->left) {
+		N_t_L = node->left->samples;
+		impurity_L = node->left->criteria;
+	}
+	double impurity_decrease = N_t / N * (impurity - N_t_R / N_t * impurity_R - N_t_L / N_t * impurity_L);
+	if (impurity_decrease < min_impurity_decrease) {
+		node->left = nullptr;
+		node->right = nullptr;
+		node->isLeaf = true;
+		node->node_depth = 0;
+		adjust_parent_depth(node);
+		return;
+	}
+	pruning_min_impurity_decrease(node->left);
+	pruning_min_impurity_decrease(node->right);
+	return;
 }

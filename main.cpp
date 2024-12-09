@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     MatrixXd x = mat.block(0, 0, mat.rows(), mat.cols() - 1);
     VectorXd y = mat.col(mat.cols() - 1);
     Decision_Tree dt;
-    dt.set_params({ {"ccp_alpha",0.01} });
+    dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), df.getFeatures());
     /*vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
