@@ -135,17 +135,18 @@ double Decision_Tree::threshold(VectorXd& x, VectorXd& y, int col, double crit, 
 			thres = (i == x.size() - 1) ? x(i) + 1 : (x(i) + x(i + 1)) / 2;
 			if (pre_thres == thres) { continue; }
 		}
-		MatrixXd data_l, data_r;
+		MatrixXd data_l(node->data.rows(),node->data.cols()), data_r(node->data.rows(), node->data.cols());
+		int l_idx = 0, r_idx = 0;
 		for (int r = 0; r < x.size(); r++) {
 			if (node->data(r, col) > thres) {
-				data_r.conservativeResize(data_r.rows() + 1, node->data.cols());
-				data_r.row(data_r.rows() - 1) = node->data.row(r);
+				data_r.row(r_idx++) = node->data.row(r);
 			}
 			else {
-				data_l.conservativeResize(data_l.rows() + 1, node->data.cols());
-				data_l.row(data_l.rows() - 1) = node->data.row(r);
+				data_l.row(l_idx++) = node->data.row(r);
 			}
 		}
+		data_l = data_l.block(0, 0, l_idx, node->data.cols()).eval();
+		data_r = data_r.block(0, 0, r_idx, node->data.cols()).eval();
 		double crit_sub = 0, crit_l = 0, crit_r = 0;
 		map<int, int>label_l, label_r;
 		if (data_l.cols() > 0) {
