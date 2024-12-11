@@ -134,7 +134,7 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 	VectorXd y = node->data.col(node->data.cols() - 1);
 	for (int i = 0; i < node->data.cols() - 1; i++) {
 		sortX(node->data, i);
-		crit_split = threshold(node,y,i,crit_split,features);
+		crit_split = threshold(node,i,crit_split,features);
 	}
 	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {
 		node->left = nullptr;
@@ -163,7 +163,7 @@ void Decision_Tree::sortX(MatrixXd& x,int col) {
 	}
 }
 
-double Decision_Tree::threshold(Node* node, VectorXd& y,int col, double crit, vector<string>features) {
+double Decision_Tree::threshold(Node* node,int col, double crit, vector<string>features) {
 	double thres;
 	MatrixXd data_ = node->data;
 	MatrixXd data_l, data_r = data_;
