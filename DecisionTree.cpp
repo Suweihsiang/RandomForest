@@ -125,40 +125,75 @@ double Decision_Tree::calc_entropy(VectorXd& data, map<int, int>label_counts) {
 	return entropy;
 }
 
-double Decision_Tree::threshold(VectorXd& x, VectorXd& y, int col, double crit, vector<string>features, Node* node) {
+void Decision_Tree::split(Node* node, vector<string>features) {
+	static int curr_depth = 1;
+	node->node_layer = curr_depth;
+	if (node->isLeaf) { depth = max(curr_depth, depth); return; }
+	curr_depth++;
+	double crit_split = 1;
+	VectorXd y = node->data.col(node->data.cols() - 1);
+	for (int i = 0; i < node->data.cols() - 1; i++) {
+		sortX(node->data, i);
+		crit_split = threshold(node,y,i,crit_split,features);
+	}
+	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {
+		node->left = nullptr;
+		node->right = nullptr;
+		node->isLeaf = true;
+		depth = max(--curr_depth, depth);
+		return;
+	}
+	if (node->left->criteria == 0 || curr_depth + 1 > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
+	if (node->right->criteria == 0 || curr_depth + 1 > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
+	
+	split(node->left, features);
+	split(node->right, features);
+	node->node_depth += max(node->left->node_depth, node->right->node_depth) + 1;
+	curr_depth--;
+}
+
+void Decision_Tree::sortX(MatrixXd& x,int col) {
+	vector<VectorXd>vec;
+	for (int i = 0; i < x.rows(); i++) {
+		vec.push_back(x.row(i));
+	}
+	sort(vec.begin(), vec.end(), [&](VectorXd& a, VectorXd& b) {return a(col) < b(col); });
+	for (int i = 0; i < vec.size(); i++) {
+		x.row(i) = vec[i];
+	}
+}
+
+double Decision_Tree::threshold(Node* node, VectorXd& y,int col, double crit, vector<string>features) {
 	double thres;
-	sort(x.data(), x.data() + x.size());
-	for (int i = 0; i < x.size(); i++) {
-		if (i == 0) { thres = x(i) - 1; }
+	MatrixXd data_ = node->data;
+	MatrixXd data_l, data_r = data_;
+	for (int i = 0; i < data_.rows();) {
+		bool move = false;
+		if (i == 0) { thres = data_.col(col)(i) - 1; }
 		else {
-			double pre_thres = thres;
-			thres = (i == x.size() - 1) ? x(i) + 1 : (x(i) + x(i + 1)) / 2;
-			if (pre_thres == thres) { continue; }
+			thres = (i == data_.rows() - 1) ? data_.col(col)(i) + 1 : (data_.col(col)(i) + data_.col(col)(i + 1)) / 2;
 		}
-		MatrixXd data_l(node->data.rows(),node->data.cols()), data_r(node->data.rows(), node->data.cols());
-		int l_idx = 0, r_idx = 0;
-		for (int r = 0; r < x.size(); r++) {
-			if (node->data(r, col) > thres) {
-				data_r.row(r_idx++) = node->data.row(r);
-			}
-			else {
-				data_l.row(l_idx++) = node->data.row(r);
-			}
+		while (data_r.rows() > 0 && data_r.col(col)(0) <= thres) {
+			move = true;
+			data_l.conservativeResize(data_l.rows() + 1, data_.cols());
+			data_l.row(data_l.rows() - 1) = data_r.row(0);
+			if(data_r.rows() > 1){ data_r = data_r.block(1, 0, data_r.rows() - 1, data_r.cols()).eval(); }
+			else { data_r = data_r.block(0, 0, 0, 0).eval(); }
 		}
-		data_l = data_l.block(0, 0, l_idx, node->data.cols()).eval();
-		data_r = data_r.block(0, 0, r_idx, node->data.cols()).eval();
+		if (move) { i = data_l.rows(); }
+		else { i++; }
 		double crit_sub = 0, crit_l = 0, crit_r = 0;
 		map<int, int>label_l, label_r;
 		if (data_l.cols() > 0) {
 			VectorXd y_l = data_l.col(data_l.cols() - 1);
 			label_l = label_count(y_l);
-			crit_l = (criterion == "gini") ? gini_impurity(y_l,label_l) : calc_entropy(y_l,label_l);
+			crit_l = (criterion == "gini") ? gini_impurity(y_l, label_l) : calc_entropy(y_l, label_l);
 			crit_sub += (double)y_l.size() / node->data.rows() * crit_l;
 		}
 		if (data_r.cols() > 0) {
 			VectorXd y_r = data_r.col(data_r.cols() - 1);
 			label_r = label_count(y_r);
-			crit_r = (criterion == "gini") ? gini_impurity(y_r,label_r) : calc_entropy(y_r,label_r);
+			crit_r = (criterion == "gini") ? gini_impurity(y_r, label_r) : calc_entropy(y_r, label_r);
 			crit_sub += (double)y_r.size() / node->data.rows() * crit_r;
 		}
 		if (crit_sub < crit) {
@@ -184,33 +219,6 @@ double Decision_Tree::threshold(VectorXd& x, VectorXd& y, int col, double crit, 
 		}
 	}
 	return crit;
-}
-
-void Decision_Tree::split(Node* node, vector<string>features) {
-	static int curr_depth = 1;
-	node->node_layer = curr_depth;
-	if (node->isLeaf) { depth = max(curr_depth, depth); return; }
-	curr_depth++;
-	double crit_split = 1;
-	VectorXd y = node->data.col(node->data.cols() - 1);
-	for (int i = 0; i < node->data.cols() - 1; i++) {
-		VectorXd data_i = node->data.col(i);
-		crit_split = threshold(data_i, y, i, crit_split, features, node);
-	}
-	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {
-		node->left = nullptr;
-		node->right = nullptr;
-		node->isLeaf = true;
-		depth = max(--curr_depth, depth);
-		return;
-	}
-	if (node->left->criteria == 0 || curr_depth + 1 > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
-	if (node->right->criteria == 0 || curr_depth + 1 > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
-	
-	split(node->left, features);
-	split(node->right, features);
-	node->node_depth += max(node->left->node_depth, node->right->node_depth) + 1;
-	curr_depth--;
 }
 
 void Decision_Tree::predict_node(Node* node, MatrixXd& x, VectorXd& y_pred, vector<string>features) {

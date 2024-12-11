@@ -66,8 +66,9 @@ private:
 	map<int, int>label_count(VectorXd& data);
 	double gini_impurity(VectorXd& data, map<int, int>label_counts);
 	double calc_entropy(VectorXd& data, map<int, int>label_counts);
-	double threshold(VectorXd& x, VectorXd& y, int col, double gini, vector<string>features, Node* node);
 	void split(Node* node, vector<string>features);
+	void sortX(MatrixXd& x, int col);
+	double threshold(Node* node, VectorXd& y,int col, double crit, vector<string>features);
 	void predict_node(Node* node, MatrixXd& x, VectorXd& y, vector<string>features);
 	void copy_tree(Node* tree, Node* new_tree);
 	void construct_treemap(Node *node,map<int, vector<double>>&tree_map);

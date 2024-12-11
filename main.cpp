@@ -6,6 +6,7 @@
 #include"matplotlibcpp.h"
 #include<cuda.h>
 #include<cuda_runtime.h>
+#include<ctime>
 #include "utils.cuh"
 
 using std::unordered_set;
@@ -34,7 +35,7 @@ int main(int argc, char** argv) {
     MatrixXd x = mat.block(0, 0, mat.rows(), mat.cols() - 1);
     VectorXd y = mat.col(mat.cols() - 1);
     Decision_Tree dt;
-    //dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
+    dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), df.getFeatures());
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
@@ -77,8 +78,11 @@ int main(int argc, char** argv) {
     MatrixXd x = df.getMatrix();
     Decision_Tree dt;
     dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
-    //dt.get_params();
+    dt.get_params();
+    clock_t a = clock();
     dt.fit(x, y, lb.get_classes(), df.getFeatures());
+    clock_t b = clock();
+    cout << b - a << "ms" << endl;
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     //for (const auto p : path) {
     //    cout << "ccp_alpha : " << p.first;
