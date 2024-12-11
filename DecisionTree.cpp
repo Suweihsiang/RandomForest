@@ -165,6 +165,7 @@ void Decision_Tree::sortX(MatrixXd& x,int col) {
 
 double Decision_Tree::threshold(Node* node,int col, double crit, vector<string>features) {
 	double thres;
+	int j = 0;
 	MatrixXd data_ = node->data;
 	MatrixXd data_l, data_r = data_;
 	for (int i = 0; i < data_.rows();) {
@@ -173,14 +174,13 @@ double Decision_Tree::threshold(Node* node,int col, double crit, vector<string>f
 		else {
 			thres = (i == data_.rows() - 1) ? data_.col(col)(i) + 1 : (data_.col(col)(i) + data_.col(col)(i + 1)) / 2;
 		}
-		while (data_r.rows() > 0 && data_r.col(col)(0) <= thres) {
+		while (j < data_.rows() && data_.col(col)(j) <= thres) {
 			move = true;
-			data_l.conservativeResize(data_l.rows() + 1, data_.cols());
-			data_l.row(data_l.rows() - 1) = data_r.row(0);
-			if(data_r.rows() > 1){ data_r = data_r.block(1, 0, data_r.rows() - 1, data_r.cols()).eval(); }
-			else { data_r = data_r.block(0, 0, 0, 0).eval(); }
+			data_l = data_.block(0 , 0 ,j + 1 , data_.cols());
+			data_r = data_.block(j + 1, 0, data_.rows() - j - 1, data_.cols());
+			j++;
 		}
-		if (move) { i = data_l.rows(); }
+		if (move) { i = j; }
 		else { i++; }
 		double crit_sub = 0, crit_l = 0, crit_r = 0;
 		map<int, int>label_l, label_r;
