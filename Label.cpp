@@ -25,9 +25,9 @@ void Label::transform(vector<vector<string>>&raw_data, vector<int>cols) {
 		}
 	}
 	for (int i = 0; i < raw_data[0].size(); i++) {
-		if (data.find(raw_data[0][i]) != data.end()) { data[raw_data[0][i]] = vector<string>(); }
+		data.push_back(make_pair(raw_data[0][i], vector<string>()));
 		for (int j = 1; j < raw_data.size(); j++) {
-			data[raw_data[0][i]].push_back(raw_data[j][i]);
+			data[i].second.push_back(raw_data[j][i]);
 		}
 	}
 }
@@ -48,7 +48,7 @@ string Label::get_key(string &value,int &col) {
 	}
 }
 
-unordered_map<string, vector<string>> Label::get_data() const { return data; }
+vector<pair<string, vector<string>>> Label::get_data() const { return data; }
 
 map<int, set<string>> Label::get_classes() const { return classes; }
 
