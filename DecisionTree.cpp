@@ -36,9 +36,9 @@ void Decision_Tree::fit(vector<vector<double>>& x, vector<double>& y, map<int, s
 	vector<pair<vector<double>, double>>data_;
 	vector<int>data_idx;
 	for (int i = 0; i < x.size(); i++) {
-		x[i].insert(x[i].begin(), i);
 		data_.push_back(make_pair(x[i], y[i]));
-		data_idx.push_back(x[i][0]);
+		data_[i].first.insert(data_[i].first.begin(), i);
+		data_idx.push_back(data_[i].first[0]);
 	}
 	Root.number = 0;
 	Root.parent_number = -1;

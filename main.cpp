@@ -1,5 +1,6 @@
 #include"Label.h"
 #include"DecisionTree.h"
+#include"RandomForest.h"
 #include<unordered_set>
 #include<Python.h>
 #include"matplotlibcpp.h"
@@ -41,8 +42,13 @@ namespace plt = matplotlibcpp;
             x[j][i - 1] = stod(data[i].second[j]);
         }
     }
+    //RandomForest rf;
+    //clock_t a = clock();
+    //rf.fit(x, y, lb.get_classes(), features);
+    //clock_t b = clock();
+    //cout << b - a << "ms" << endl;
     Decision_Tree dt;
-    dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
+    //dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
     dt.get_params();
     dt.fit(x, y,lb.get_classes(), features);
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
@@ -82,26 +88,31 @@ int main(int argc, char** argv) {
         y.push_back(stod(data[1].second[i]));
     }
     vector<string> features;
-    vector<vector<double>> x(data[0].second.size(), vector<double>(data.size()));
+    vector<vector<double>> x(data[0].second.size(), vector<double>(data.size() - 2));
     for (int i = 2; i < data.size(); i++) {
         features.push_back(data[i].first);
         for (int j = 0; j < data[0].second.size(); j++) {
             x[j][i - 2] = stod(data[i].second[j]);
         }
     }
-    Decision_Tree dt;
-    //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
-    dt.get_params();
+    RandomForest rf;
     clock_t a = clock();
-    dt.fit(x, y, lb.get_classes(), features);
+    rf.fit(x, y, lb.get_classes(), features);
     clock_t b = clock();
     cout << b - a << "ms" << endl;
+    //Decision_Tree dt;
+    //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
+    //dt.get_params();
+    //clock_t a = clock();
+    //dt.fit(x, y, lb.get_classes(), features);
+    //clock_t b = clock();
+    //cout << b - a << "ms" << endl;
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     //for (const auto p : path) {
     //    cout << "ccp_alpha : " << p.first;
     //    cout << ", impurity : " << p.second << endl;
     //}
-    dt.export_tree();
+    //dt.export_tree();
     //vector<double> y_pred = dt.predict(x, features);
     //double score = dt.score(x, y, features);
     //for (auto pred : y_pred) { cout << pred << " "; }
