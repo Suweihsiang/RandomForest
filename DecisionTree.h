@@ -23,7 +23,7 @@ using std::sort;
 using std::max;
 
 struct Node {
-	vector<pair<vector<double>,double>> data;
+	vector<int>data_index;
 	int number;
 	int parent_number;
 	string feature;
@@ -42,6 +42,7 @@ struct Node {
 class Decision_Tree {
 public:
 	Decision_Tree();
+	Decision_Tree(string criterion, int max_depth, int min_sample_split, int min_sample_leaf, double ccp_alpha, double min_impurity_decrease);
 	~Decision_Tree();
 	void set_params(unordered_map<string, double>params);
 	void get_params();
@@ -63,9 +64,9 @@ private:
 	map<int, int>label_count(vector<double>& data);
 	double gini_impurity(vector<double>& data, map<int, int>label_counts);
 	double calc_entropy(vector<double>& data, map<int, int>label_counts);
-	void split(Node* node, vector<string>features);
+	void split(Node* node, vector<string>features, vector<pair<vector<double>,double>>&data);
 	void sortX(vector<pair<vector<double>, double>>& data, int col);
-	double threshold(Node* node,int col, double crit, vector<string>features);
+	double threshold(Node* node, int col, double crit, vector<string>features, vector<pair<vector<double>, double>>& data);
 	void predict_node(Node* node, vector<vector<double>>& x, vector<double>& y_pred, vector<string>features);
 	void copy_tree(Node* tree, Node* new_tree);
 	void construct_treemap(Node* node, map<int, vector<double>>& tree_map);

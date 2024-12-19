@@ -1,6 +1,8 @@
 #include"DecisionTree.h"
 
-Decision_Tree::Decision_Tree() {}
+Decision_Tree::Decision_Tree(){}
+
+Decision_Tree::Decision_Tree(string criterion, int max_depth, int min_sample_split, int min_sample_leaf, double ccp_alpha, double min_impurity_decrease):criterion(criterion), max_depth(max_depth), min_sample_split(min_sample_split), min_sample_leaf(min_sample_leaf), ccp_alpha(ccp_alpha), min_impurity_decrease(min_impurity_decrease) {}
 
 Decision_Tree::~Decision_Tree() {}
 
@@ -32,27 +34,27 @@ void Decision_Tree::get_params() {
 
 void Decision_Tree::fit(vector<vector<double>>& x, vector<double>& y, map<int, set<string>>classes, vector<string>features) {
 	vector<pair<vector<double>, double>>data_;
+	vector<int>data_idx;
 	for (int i = 0; i < x.size(); i++) {
+		x[i].insert(x[i].begin(), i);
 		data_.push_back(make_pair(x[i], y[i]));
+		data_idx.push_back(x[i][0]);
 	}
 	Root.number = 0;
 	Root.parent_number = -1;
-	Root.data = data_;
-	Root.samples = data_.size();
+	Root.data_index = data_idx;
+	Root.samples = data_idx.size();
 	map<int, int>label_counts = label_count(y);
 	Root.criteria = (criterion == "gini") ? gini_impurity(y, label_counts) : calc_entropy(y, label_counts);
 	Root.values = label_counts;
 	Node* node = &Root;
-	split(node, features);
+	split(node, features,data_);
 	if (ccp_alpha > 0.0) { cost_complexity_pruning_path(); }
 	if (min_impurity_decrease > 0.0) { pruning_min_impurity_decrease(node); }
 }
 
 vector<double> Decision_Tree::predict(vector<vector<double>> x, vector<string> features) {
 	vector<double> y_pred(x.size());
-	/*x.conservativeResize(x.rows(), x.cols() + 1);
-	x.block(0, 1, x.rows(), x.cols() - 1) = x.block(0, 0, x.rows(), x.cols() - 1).eval();
-	x.col(0) = VectorXd::LinSpaced(x.rows(), 0, x.rows() - 1);*/
 	for (int i = 0; i < x.size(); i++) { x[i].insert(x[i].begin(), i); }
 	predict_node(&Root, x, y_pred, features);
 	return y_pred;
@@ -120,15 +122,19 @@ double Decision_Tree::calc_entropy(vector<double>& data, map<int, int>label_coun
 	return entropy;
 }
 
-void Decision_Tree::split(Node* node, vector<string>features) {
+void Decision_Tree::split(Node* node, vector<string>features, vector<pair<vector<double>, double>>& data) {
 	static int curr_depth = 1;
 	node->node_layer = curr_depth;
 	if (node->isLeaf) { depth = max(curr_depth, depth); return; }
 	curr_depth++;
 	double crit_split = 1;
-	for (int i = 0; i < node->data[0].first.size(); i++) {
-		sortX(node->data, i);
-		crit_split = threshold(node,i,crit_split,features);
+	vector<pair<vector<double>, double>>node_data;
+	for (const auto &idx : node->data_index) {
+		node_data.push_back(data[idx]);
+	}
+	for (int i = 1; i < data[0].first.size(); i++) {
+		sortX(node_data, i);
+		crit_split = threshold(node,i,crit_split,features,node_data);
 	}
 	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {
 		node->left = nullptr;
@@ -140,8 +146,8 @@ void Decision_Tree::split(Node* node, vector<string>features) {
 	if (node->left->criteria == 0 || curr_depth + 1 > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
 	if (node->right->criteria == 0 || curr_depth + 1 > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
 	
-	split(node->left, features);
-	split(node->right, features);
+	split(node->left, features,data);
+	split(node->right, features,data);
 	node->node_depth += max(node->left->node_depth, node->right->node_depth) + 1;
 	curr_depth--;
 }
@@ -150,60 +156,67 @@ void Decision_Tree::sortX(vector<pair<vector<double>,double>>& data,int col) {
 	sort(data.begin(), data.end(), [&](pair<vector<double>,double> & a, pair<vector<double>,double> & b) {return a.first[col] < b.first[col]; });
 }
 
-double Decision_Tree::threshold(Node* node,int col, double crit, vector<string>features) {
+double Decision_Tree::threshold(Node* node, int col, double crit, vector<string>features, vector<pair<vector<double>, double>>& data) {
 	double thres;
 	int j = 0;
-	vector<pair<vector<double>, double>> data_ = node->data;
-	vector<pair<vector<double>, double>> data_l, data_r = data_;
+	vector<int>data_l, data_r;
 	vector<double>y_l, y_r;
-	int yl_size = 0, yr_size = data_.size();
-	for (int i = 0; i < data_.size(); i++) { y_r.push_back(data_[i].second); }
-	for (int i = 0; i < data_.size();) {
+	for (int i = 0; i < node->samples; i++) {
+		data_r.push_back(data[i].first[0]);
+		y_r.push_back(data[i].second);
+	}
+	int yl_size = 0, yr_size = y_r.size();
+	for (int i = 0; i < data.size();) {
 		bool move = false;
-		if (i == 0) { thres = data_[i].first[col] - 1; }
-		else { thres = (data_[i].first[col] + data_[i - 1].first[col]) / 2; }
-		while (j < data_.size() && data_[j].first[col] <= thres) {
+		if (i == 0) { thres = data[i].first[col] - 1; }
+		else { thres = (data[i].first[col] + data[i - 1].first[col]) / 2; }
+		while (j < data.size() && data[j].first[col] <= thres) {
 			move = true;
-			data_l.push_back(data_[j]);
+			data_l.push_back(*(data_r.begin()));
 			data_r.erase(data_r.begin());
 			j++;
 		}
+		
 		if (move) { i = j; }
-		else { i++; }
+		i++;
 		double crit_sub = 0, crit_l = 0, crit_r = 0;
 		map<int, int>label_l, label_r;
+		
 		if (data_l.size() > 0) {
-			while (yl_size < data_l.size()) { y_l.push_back(data_l[yl_size++].second); y_r.erase(y_r.begin()); }
+			while (yl_size < data_l.size()) { y_l.push_back(*(y_r.begin())); y_r.erase(y_r.begin()); yl_size++; }
 			label_l = label_count(y_l);
 			crit_l = (criterion == "gini") ? gini_impurity(y_l, label_l) : calc_entropy(y_l, label_l);
-			crit_sub += (double)y_l.size() / node->data.size() * crit_l;
+			crit_sub += (double)y_l.size() / node->samples * crit_l;
 		}
+		
 		if (data_r.size() > 0) {
 			label_r = label_count(y_r);
 			crit_r = (criterion == "gini") ? gini_impurity(y_r, label_r) : calc_entropy(y_r, label_r);
-			crit_sub += (double)y_r.size() / node->data.size() * crit_r;
+			crit_sub += (double)y_r.size() / node->samples * crit_r;
 		}
+		
 		if (crit_sub <= crit) {
 			crit = crit_sub;
 			node->threshold = thres;
-			node->feature = features[col];
+			node->feature = features[col - 1];
 			node->left = new Node();
 			node->right = new Node();
 			node->left->parent = node;
 			node->left->number = 2 * node->number + 1;
 			node->left->parent_number = node->number;
-			node->left->data = data_l;
+			node->left->data_index = data_l;
 			node->left->criteria = crit_l;
 			node->left->samples = data_l.size();
 			node->left->values = label_l;
 			node->right->parent = node;
 			node->right->number = 2 * node->number + 2;
 			node->right->parent_number = node->number;
-			node->right->data = data_r;
+			node->right->data_index = data_r;
 			node->right->criteria = crit_r;
 			node->right->samples = data_r.size();
 			node->right->values = label_r;
 		}
+		
 	}
 	return crit;
 }
@@ -235,7 +248,7 @@ void Decision_Tree::predict_node(Node* node, vector<vector<double>>& x, vector<d
 }
 
 void Decision_Tree::copy_tree(Node* tree, Node* new_tree) {
-	new_tree->data = tree->data;
+	new_tree->data_index = tree->data_index;
 	new_tree->number = tree->number;
 	new_tree->parent_number = tree->parent_number;
 	new_tree->feature = tree->feature;
