@@ -46,9 +46,9 @@ public:
 	~Decision_Tree();
 	void set_params(unordered_map<string, double>params);
 	void get_params();
-	void fit(vector<vector<double>>& x, vector<double>& y, map<int, set<string>>&classes);
-	vector<double> predict(vector<vector<double>> x);
-	double score(vector<vector<double>> &x, vector<double> &y);
+	void fit(vector<vector<double>>& x, vector<int>& y, map<int, set<string>>&classes);
+	vector<int> predict(vector<vector<double>> x);
+	double score(vector<vector<double>> &x, vector<int> &y);
 	vector<pair<double, double>>cost_complexity_pruning_path();
 	void export_tree();
 private:
@@ -61,13 +61,13 @@ private:
 	double ccp_alpha = 0.0;
 	double min_impurity_decrease = 0.0;
 	vector<string>classes;
-	map<int, int>label_count(vector<double>& data);
-	double gini_impurity(vector<double>& data, map<int, int>&label_counts);
-	double calc_entropy(vector<double>& data, map<int, int>&label_counts);
-	void split(Node* node, vector<pair<vector<double>, double>>& data);
-	void sortX(vector<pair<vector<double>, double>>& data, int &col);
-	double threshold(Node* node, int &col, double &crit, vector<pair<vector<double>, double>>& data);
-	void predict_node(Node* node, vector<vector<double>>& x, vector<double>& y_pred);
+	map<int, int>label_count(vector<int>& data);
+	double gini_impurity(vector<int>& data, map<int, int>&label_counts);
+	double calc_entropy(vector<int>& data, map<int, int>&label_counts);
+	void split(Node* node, vector<pair<vector<double>, int>>& data);
+	void sortX(vector<pair<vector<double>, int>>& data, int &col);
+	double threshold(Node* node, int &col, double &crit, vector<pair<vector<double>, int>>& data);
+	void predict_node(Node* node, vector<vector<double>>& x, vector<int>& y_pred);
 	void copy_tree(Node* tree, Node* new_tree);
 	void construct_treemap(Node* node, map<int, vector<double>>& tree_map);
 	map<int, vector<double>> cost_complexity_pruning(Node *node, map<int, vector<double>> &best_tree_map, map<int, vector<double>> &tree_map, vector<pair<double, double>>&path,int iters);

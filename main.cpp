@@ -30,14 +30,13 @@ namespace plt = matplotlibcpp;
     lb.fit(raw_data, { 5 });
     lb.transform(raw_data, { 5 });
     vector<pair<string, vector<string>>> data = lb.get_data();
-    vector<double>y;
+    map<int, set<string>>classes = lb.get_classes();
+    vector<int>y;
     for (int i = 0; i < data[0].second.size(); i++) {
-        y.push_back(stod(data[5].second[i]));
+        y.push_back(stoi(data[5].second[i]));
     }
-    vector<string> features;
     vector<vector<double>> x(data[0].second.size(), vector<double>(data.size()));
     for (int i = 1; i < data.size() - 1; i++) {
-        features.push_back(data[i].first);
         for (int j = 0; j < data[0].second.size(); j++) {
             x[j][i - 1] = stod(data[i].second[j]);
         }
@@ -50,15 +49,15 @@ namespace plt = matplotlibcpp;
     Decision_Tree dt;
     //dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
     dt.get_params();
-    dt.fit(x, y,lb.get_classes(), features);
+    dt.fit(x, y,classes);
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     //for (const auto p : path) {
     //    cout << "ccp_alpha : " << p.first;
     //    cout << ", impurity : " << p.second << endl;
     //}
     dt.export_tree();
-    //vector<double> y_pred = dt.predict(x, features);
-    //double score = dt.score(x, y, features);
+    //vector<double> y_pred = dt.predict(x);
+    //double score = dt.score(x, y);
     //for(auto pred : y_pred){ cout << pred << " "; }
     //cout << endl;
     //cout << score << endl;
@@ -83,28 +82,27 @@ int main(int argc, char** argv) {
     lb.fit(raw_data, { 1 });
     lb.transform(raw_data, { 1 });
     vector<pair<string, vector<string>>> data = lb.get_data();
-    vector<double>y;
+    map<int, set<string>>classes = lb.get_classes();
+    vector<int>y;
     for (int i = 0; i < data[0].second.size(); i++) {
-        y.push_back(stod(data[1].second[i]));
+        y.push_back(stoi(data[1].second[i]));
     }
-    vector<string> features;
     vector<vector<double>> x(data[0].second.size(), vector<double>(data.size() - 2));
     for (int i = 2; i < data.size(); i++) {
-        features.push_back(data[i].first);
         for (int j = 0; j < data[0].second.size(); j++) {
             x[j][i - 2] = stod(data[i].second[j]);
         }
     }
     RandomForest rf;
     clock_t a = clock();
-    rf.fit(x, y, lb.get_classes(), features);
+    rf.fit(x, y, classes);
     clock_t b = clock();
     cout << b - a << "ms" << endl;
     //Decision_Tree dt;
     //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
     //dt.get_params();
     //clock_t a = clock();
-    //dt.fit(x, y, lb.get_classes(), features);
+    //dt.fit(x, y, classes);
     //clock_t b = clock();
     //cout << b - a << "ms" << endl;
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
@@ -113,8 +111,8 @@ int main(int argc, char** argv) {
     //    cout << ", impurity : " << p.second << endl;
     //}
     //dt.export_tree();
-    //vector<double> y_pred = dt.predict(x, features);
-    //double score = dt.score(x, y, features);
+    //vector<double> y_pred = dt.predict(x);
+    //double score = dt.score(x, y);
     //for (auto pred : y_pred) { cout << pred << " "; }
     //cout << endl;
     //cout << score << endl;

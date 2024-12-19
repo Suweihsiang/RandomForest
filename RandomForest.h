@@ -19,9 +19,9 @@ class RandomForest {
 public:
 	RandomForest();
 	RandomForest(int nEstimators, string criterion, int max_depth, int min_sample_split, int min_sample_leaf, double ccp_alpha, double min_impurity_decrease);
-	void fit(vector<vector<double>>& x, vector<double>& y, map<int, set<string>>classes, vector<string>features);
-	vector<double> predict(vector<vector<double>> x, vector<string>features);
-	double score(vector<vector<double>> x, vector<double> y, vector<string>features);
+	void fit(vector<vector<double>>& x, vector<int>& y, map<int, set<string>>&classes);
+	vector<double> predict(vector<vector<double>> x);
+	double score(vector<vector<double>> x, vector<int> y);
 private:
 	int nEstimators = 100;
 	string criterion = "gini";

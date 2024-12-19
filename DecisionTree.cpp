@@ -32,8 +32,8 @@ void Decision_Tree::get_params() {
 	cout << "ccp_alpha = " << ccp_alpha << ",min_impurity_decrease = " << min_impurity_decrease << endl;
 }
 
-void Decision_Tree::fit(vector<vector<double>>& x, vector<double>& y, map<int, set<string>>&classes) {
-	vector<pair<vector<double>, double>>data_;
+void Decision_Tree::fit(vector<vector<double>>& x, vector<int>& y, map<int, set<string>>&classes) {
+	vector<pair<vector<double>, int>>data_;
 	vector<int>data_idx;
 	for (int i = 0; i < x.size(); i++) {
 		data_.push_back(make_pair(x[i], y[i]));
@@ -53,15 +53,15 @@ void Decision_Tree::fit(vector<vector<double>>& x, vector<double>& y, map<int, s
 	if (min_impurity_decrease > 0.0) { pruning_min_impurity_decrease(node); }
 }
 
-vector<double> Decision_Tree::predict(vector<vector<double>> x) {
-	vector<double> y_pred(x.size());
+vector<int> Decision_Tree::predict(vector<vector<double>> x) {
+	vector<int> y_pred(x.size());
 	for (int i = 0; i < x.size(); i++) { x[i].insert(x[i].begin(), i); }
 	predict_node(&Root, x, y_pred);
 	return y_pred;
 }
 
-double Decision_Tree::score(vector<vector<double>> &x, vector<double> &y) {
-	vector<double> y_pred = predict(x);
+double Decision_Tree::score(vector<vector<double>> &x, vector<int> &y) {
+	vector<int> y_pred = predict(x);
 	double correct = 0;
 	for (int i = 0; i < y_pred.size(); i++) {
 		if (y_pred[i] == y[i]) { correct++; }
@@ -96,7 +96,7 @@ void Decision_Tree::export_tree() {
 	return;
 }
 
-map<int,int> Decision_Tree::label_count(vector<double>& data) {
+map<int,int> Decision_Tree::label_count(vector<int>& data) {
 	map<int, int>label_counts;
 	for (const auto &d : data) {
 		label_counts[d]++;
@@ -104,7 +104,7 @@ map<int,int> Decision_Tree::label_count(vector<double>& data) {
 	return label_counts;
 }
 
-double Decision_Tree::gini_impurity(vector<double>& data,map<int,int>&label_counts) {
+double Decision_Tree::gini_impurity(vector<int>& data,map<int,int>&label_counts) {
 	double gini = 1.0;
 	double total = data.size();
 	for (const auto &count : label_counts) {
@@ -113,7 +113,7 @@ double Decision_Tree::gini_impurity(vector<double>& data,map<int,int>&label_coun
 	return gini;
 }
 
-double Decision_Tree::calc_entropy(vector<double>& data, map<int, int>&label_counts) {
+double Decision_Tree::calc_entropy(vector<int>& data, map<int, int>&label_counts) {
 	double entropy = 0.0;
 	double total = data.size();
 	for (const auto &count : label_counts) {
@@ -122,13 +122,13 @@ double Decision_Tree::calc_entropy(vector<double>& data, map<int, int>&label_cou
 	return entropy;
 }
 
-void Decision_Tree::split(Node* node, vector<pair<vector<double>, double>>& data) {
+void Decision_Tree::split(Node* node, vector<pair<vector<double>, int>>& data) {
 	static int curr_depth = 1;
 	node->node_layer = curr_depth;
 	if (node->isLeaf) { depth = max(curr_depth, depth); return; }
 	curr_depth++;
 	double crit_split = 1;
-	vector<pair<vector<double>, double>>node_data;
+	vector<pair<vector<double>, int>>node_data;
 	for (const auto &idx : node->data_index) {
 		node_data.push_back(data[idx]);
 	}
@@ -152,15 +152,15 @@ void Decision_Tree::split(Node* node, vector<pair<vector<double>, double>>& data
 	curr_depth--;
 }
 
-void Decision_Tree::sortX(vector<pair<vector<double>,double>>& data,int &col) {
-	sort(data.begin(), data.end(), [&](pair<vector<double>,double> & a, pair<vector<double>,double> & b) {return a.first[col] < b.first[col]; });
+void Decision_Tree::sortX(vector<pair<vector<double>,int>>& data,int &col) {
+	sort(data.begin(), data.end(), [&](pair<vector<double>,int> & a, pair<vector<double>,int> & b) {return a.first[col] < b.first[col]; });
 }
 
-double Decision_Tree::threshold(Node* node, int &col, double &crit, vector<pair<vector<double>, double>>& data) {
+double Decision_Tree::threshold(Node* node, int &col, double &crit, vector<pair<vector<double>, int>>& data) {
 	double thres;
 	int j = 0;
 	vector<int>data_l, data_r;
-	vector<double>y_l, y_r;
+	vector<int>y_l, y_r;
 	for (int i = 0; i < node->samples; i++) {
 		data_r.push_back(data[i].first[0]);
 		y_r.push_back(data[i].second);
@@ -221,7 +221,7 @@ double Decision_Tree::threshold(Node* node, int &col, double &crit, vector<pair<
 	return crit;
 }
 
-void Decision_Tree::predict_node(Node* node, vector<vector<double>>& x, vector<double>& y_pred) {
+void Decision_Tree::predict_node(Node* node, vector<vector<double>>& x, vector<int>& y_pred) {
 	if (node->isLeaf) {
 		auto cls = max_element(node->values.begin(), node->values.end(), [](const auto& left, const auto& right) {return left.second < right.second; });
 		for (int i = 0; i < x.size(); i++) {
