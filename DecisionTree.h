@@ -30,7 +30,7 @@ struct Node {
 	double threshold;
 	double criteria;
 	int samples;
-	map<int, int>values;
+	vector<int>values;
 	bool isLeaf = false;
 	int node_layer;
 	int node_depth = 0;
@@ -46,7 +46,7 @@ public:
 	~Decision_Tree();
 	void set_params(unordered_map<string, double>params);
 	void get_params();
-	void fit(vector<vector<double>>& x, vector<int>& y, map<int, set<string>>&classes);
+	void fit(vector<vector<double>>& x, vector<int>& y);
 	vector<int> predict(vector<vector<double>> x);
 	double score(vector<vector<double>> &x, vector<int> &y);
 	vector<pair<double, double>>cost_complexity_pruning_path();
@@ -60,10 +60,10 @@ private:
 	int min_sample_leaf = 1;
 	double ccp_alpha = 0.0;
 	double min_impurity_decrease = 0.0;
-	vector<string>classes;
-	map<int, int>label_count(vector<int>& data);
-	double gini_impurity(vector<int>& data, map<int, int>&label_counts);
-	double calc_entropy(vector<int>& data, map<int, int>&label_counts);
+	set<int>classes;
+	vector<int>label_count(vector<int>& data);
+	double gini_impurity(vector<int>& data, vector<int>&label_counts);
+	double calc_entropy(vector<int>& data, vector<int>&label_counts);
 	void split(Node* node, vector<pair<vector<double>, int>>& data);
 	void sortX(vector<pair<vector<double>, int>>& data, int &col);
 	double threshold(Node* node, int &col, double &crit, vector<pair<vector<double>, int>>& data);

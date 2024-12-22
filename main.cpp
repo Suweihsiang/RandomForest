@@ -41,21 +41,21 @@ namespace plt = matplotlibcpp;
             x[j][i - 1] = stod(data[i].second[j]);
         }
     }
-    //RandomForest rf;
-    //clock_t a = clock();
-    //rf.fit(x, y, lb.get_classes(), features);
-    //clock_t b = clock();
-    //cout << b - a << "ms" << endl;
-    Decision_Tree dt;
+    RandomForest rf;
+    clock_t a = clock();
+    rf.fit(x, y);
+    clock_t b = clock();
+    cout << b - a << "ms" << endl;
+    //Decision_Tree dt;
     //dt.set_params({ {"min_sample_split",7},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
-    dt.get_params();
-    dt.fit(x, y,classes);
+    //dt.get_params();
+    //dt.fit(x, y);
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     //for (const auto p : path) {
     //    cout << "ccp_alpha : " << p.first;
     //    cout << ", impurity : " << p.second << endl;
     //}
-    dt.export_tree();
+    //dt.export_tree();
     //vector<double> y_pred = dt.predict(x);
     //double score = dt.score(x, y);
     //for(auto pred : y_pred){ cout << pred << " "; }
@@ -82,7 +82,6 @@ int main(int argc, char** argv) {
     lb.fit(raw_data, { 1 });
     lb.transform(raw_data, { 1 });
     vector<pair<string, vector<string>>> data = lb.get_data();
-    map<int, set<string>>classes = lb.get_classes();
     vector<int>y;
     for (int i = 0; i < data[0].second.size(); i++) {
         y.push_back(stoi(data[1].second[i]));
@@ -93,24 +92,24 @@ int main(int argc, char** argv) {
             x[j][i - 2] = stod(data[i].second[j]);
         }
     }
-    RandomForest rf;
-    clock_t a = clock();
-    rf.fit(x, y, classes);
-    clock_t b = clock();
-    cout << b - a << "ms" << endl;
-    //Decision_Tree dt;
-    //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
-    //dt.get_params();
+    //RandomForest rf;
     //clock_t a = clock();
-    //dt.fit(x, y, classes);
+    //rf.fit(x, y);
     //clock_t b = clock();
     //cout << b - a << "ms" << endl;
+    Decision_Tree dt;
+    //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
+    dt.get_params();
+    clock_t a = clock();
+    dt.fit(x, y);
+    clock_t b = clock();
+    cout << b - a << "ms" << endl;
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     //for (const auto p : path) {
     //    cout << "ccp_alpha : " << p.first;
     //    cout << ", impurity : " << p.second << endl;
     //}
-    //dt.export_tree();
+    dt.export_tree();
     //vector<double> y_pred = dt.predict(x);
     //double score = dt.score(x, y);
     //for (auto pred : y_pred) { cout << pred << " "; }

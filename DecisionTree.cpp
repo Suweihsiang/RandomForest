@@ -32,7 +32,8 @@ void Decision_Tree::get_params() {
 	cout << "ccp_alpha = " << ccp_alpha << ",min_impurity_decrease = " << min_impurity_decrease << endl;
 }
 
-void Decision_Tree::fit(vector<vector<double>>& x, vector<int>& y, map<int, set<string>>&classes) {
+void Decision_Tree::fit(vector<vector<double>>& x, vector<int>& y) {
+	classes = set<int>(y.begin(), y.end());
 	vector<pair<vector<double>, int>>data_;
 	vector<int>data_idx;
 	for (int i = 0; i < x.size(); i++) {
@@ -44,7 +45,7 @@ void Decision_Tree::fit(vector<vector<double>>& x, vector<int>& y, map<int, set<
 	Root.parent_number = -1;
 	Root.data_index = data_idx;
 	Root.samples = data_idx.size();
-	map<int, int>label_counts = label_count(y);
+	vector<int>label_counts = label_count(y);
 	Root.criteria = (criterion == "gini") ? gini_impurity(y, label_counts) : calc_entropy(y, label_counts);
 	Root.values = label_counts;
 	Node* node = &Root;
@@ -96,28 +97,30 @@ void Decision_Tree::export_tree() {
 	return;
 }
 
-map<int,int> Decision_Tree::label_count(vector<int>& data) {
-	map<int, int>label_counts;
+vector<int> Decision_Tree::label_count(vector<int>& data) {
+	vector<int>label_counts(classes.size(), 0);
 	for (const auto &d : data) {
 		label_counts[d]++;
 	}
 	return label_counts;
 }
 
-double Decision_Tree::gini_impurity(vector<int>& data,map<int,int>&label_counts) {
+double Decision_Tree::gini_impurity(vector<int>& data,vector<int>&label_counts) {
 	double gini = 1.0;
 	double total = data.size();
 	for (const auto &count : label_counts) {
-		gini -= pow(count.second / total, 2);
+		if (count == 0) { continue; }
+		gini -= pow(count / total, 2);
 	}
 	return gini;
 }
 
-double Decision_Tree::calc_entropy(vector<int>& data, map<int, int>&label_counts) {
+double Decision_Tree::calc_entropy(vector<int>& data, vector<int>&label_counts) {
 	double entropy = 0.0;
 	double total = data.size();
 	for (const auto &count : label_counts) {
-		entropy -= count.second / total * log10(count.second / total);
+		if (count == 0) { continue; }
+		entropy -= count / total * log10(count / total);
 	}
 	return entropy;
 }
@@ -180,7 +183,7 @@ double Decision_Tree::threshold(Node* node, int &col, double &crit, vector<pair<
 		if (move) { i = j; }
 		i++;
 		double crit_sub = 0, crit_l = 0, crit_r = 0;
-		map<int, int>label_l, label_r;
+		vector<int>label_l, label_r;
 		
 		if (data_l.size() > 0) {
 			while (yl_size < data_l.size()) { y_l.push_back(*(y_r.begin())); y_r.erase(y_r.begin()); yl_size++; }
@@ -223,10 +226,10 @@ double Decision_Tree::threshold(Node* node, int &col, double &crit, vector<pair<
 
 void Decision_Tree::predict_node(Node* node, vector<vector<double>>& x, vector<int>& y_pred) {
 	if (node->isLeaf) {
-		auto cls = max_element(node->values.begin(), node->values.end(), [](const auto& left, const auto& right) {return left.second < right.second; });
+		auto cls = max_element(node->values.begin(), node->values.end()) - node->values.begin();
 		for (int i = 0; i < x.size(); i++) {
 			int idx = x[i][0];
-			y_pred[idx] = cls->first;
+			y_pred[idx] = cls;
 		}
 	}
 	else {
@@ -360,7 +363,7 @@ void Decision_Tree::print(Node* node) {
 	cout << "node criteria = " << node->criteria << endl;
 	cout << "node sample size = " << node->samples << endl;
 	cout << "node label count : [";
-	for (auto p : node->values) { cout << p.first << ":" << p.second << ","; }
+	for (auto p : node->values) { cout << p << ","; }
 	cout << "\b]" << endl;
 	cout << "--------------------------------------------------------------------" << endl;
 }
