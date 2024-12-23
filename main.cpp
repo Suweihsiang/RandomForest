@@ -82,35 +82,41 @@ int main(int argc, char** argv) {
     lb.fit(raw_data, { 1 });
     lb.transform(raw_data, { 1 });
     vector<pair<string, vector<string>>> data = lb.get_data();
-    vector<int>y;
-    for (int i = 0; i < data[0].second.size(); i++) {
-        y.push_back(stoi(data[1].second[i]));
-    }
+    vector<pair<vector<double>, int>> datas;
+    /*vector<int>y(data[0].second.size(), -1);
     vector<vector<double>> x(data[0].second.size(), vector<double>(data.size() - 2));
-    for (int i = 2; i < data.size(); i++) {
-        for (int j = 0; j < data[0].second.size(); j++) {
-            x[j][i - 2] = stod(data[i].second[j]);
+    for (int i = 0; i < data[0].second.size(); i++) {
+        for (int j = 2; j < data.size(); j++) {
+            x[i][j - 2] = stod(data[j].second[i]);
         }
+        y[i] = stoi(data[1].second[i]);
+    }*/
+    for (int i = 0; i < data[0].second.size(); i++) {
+        vector<double>x;
+        for (int j = 2; j < data.size(); j++) {
+            x.push_back(stod(data[j].second[i]));
+        }
+        datas.push_back(make_pair(x, stoi(data[1].second[i])));
     }
-    //RandomForest rf;
-    //clock_t a = clock();
-    //rf.fit(x, y);
-    //clock_t b = clock();
-    //cout << b - a << "ms" << endl;
-    Decision_Tree dt;
-    //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
-    dt.get_params();
+    RandomForest rf/*(100, "gini", 400, INT_MAX, 2, 1, 0.0, 0.0)*/;
     clock_t a = clock();
-    dt.fit(x, y);
+    rf.fit(datas);
     clock_t b = clock();
     cout << b - a << "ms" << endl;
+    //Decision_Tree dt;
+    //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
+    //dt.get_params();
+    //clock_t a = clock();
+    //dt.fit(x,y);
+    //clock_t b = clock();
+    //cout << b - a << "ms" << endl;
     //vector<pair<double, double>> path = dt.cost_complexity_pruning_path();
     //for (const auto p : path) {
     //    cout << "ccp_alpha : " << p.first;
     //    cout << ", impurity : " << p.second << endl;
     //}
-    dt.export_tree();
-    //vector<double> y_pred = dt.predict(x);
+    //dt.export_tree();
+    //vector<int> y_pred = dt.predict(x);
     //double score = dt.score(x, y);
     //for (auto pred : y_pred) { cout << pred << " "; }
     //cout << endl;
