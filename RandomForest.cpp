@@ -14,17 +14,19 @@ void RandomForest::fit(vector<pair<vector<double>, int>>& datas) {
 		workers.emplace_back([&,i]() {
 			unique_lock<mutex> lock(queue_mutex);
 			condition.wait(lock, [&]() {return ready; });
+			vector<pair<vector<double>, int>>data_fit;
 			if (fit_samples != -1) {
 				random_device rd;
 				mt19937 g(rd());
 				shuffle(datas.begin(), datas.end(), g);
-				datas = vector<pair<vector<double>, int>>(datas.begin(), datas.begin() + fit_samples);
+				data_fit = vector<pair<vector<double>, int>>(datas.begin(), datas.begin() + fit_samples);
 			}
-			vector<vector<double>>x(datas.size());
-			vector<int>y(datas.size());
-			for (int i = 0; i < datas.size(); i++) {
-				x[i] = datas[i].first;
-				y[i] = datas[i].second;
+			else { data_fit = datas; }
+			vector<vector<double>>x(data_fit.size());
+			vector<int>y(data_fit.size());
+			for (int i = 0; i < data_fit.size(); i++) {
+				x[i] = data_fit[i].first;
+				y[i] = data_fit[i].second;
 			}
 			Decision_Tree dt(criterion, max_depth, min_sample_split, min_sample_leaf, ccp_alpha, min_impurity_decrease);
 			dt.fit(x,y);
