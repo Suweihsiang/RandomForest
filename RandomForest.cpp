@@ -38,3 +38,27 @@ void RandomForest::fit(vector<pair<vector<double>, int>>& datas) {
 		workers[i].join();
 	}
 }
+
+vector<int> RandomForest::predict(vector<vector<double>>& x) {
+	vector<vector<int>>vote(x.size(),vector<int>(trees[0].get_classes_size(),0));
+	for (int i = 0; i < trees.size(); i++) {
+		vector<int>result = trees[i].predict(x);
+		for (int j = 0; j < x.size(); j++) {
+			vote[j][result[j]]++;
+		}
+	}
+	vector<int>y_pred(x.size());
+	for (int i = 0; i < x.size(); i++) {
+		y_pred[i] = max_element(vote[i].begin(), vote[i].end()) - vote[i].begin();
+	}
+	return y_pred;
+}
+
+double RandomForest::score(vector<vector<double>>& x, vector<int>& y) {
+	vector<int> y_pred = predict(x);
+	double correct = 0;
+	for (int i = 0; i < y_pred.size(); i++) {
+		if (y_pred[i] == y[i]) { correct++; }
+	}
+	return correct / y_pred.size();
+}

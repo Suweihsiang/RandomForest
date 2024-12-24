@@ -97,6 +97,10 @@ void Decision_Tree::export_tree() {
 	return;
 }
 
+int Decision_Tree::get_classes_size() const {
+	return classes.size();
+}
+
 vector<int> Decision_Tree::label_count(vector<int>& data) {
 	vector<int>label_counts(classes.size(), 0);
 	for (const auto &d : data) {

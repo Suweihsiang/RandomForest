@@ -51,6 +51,7 @@ public:
 	double score(vector<vector<double>> &x, vector<int> &y);
 	vector<pair<double, double>>cost_complexity_pruning_path();
 	void export_tree();
+	int get_classes_size() const;
 private:
 	Node Root;
 	int depth = 1;

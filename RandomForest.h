@@ -8,6 +8,7 @@
 #include<mutex>
 #include<condition_variable>
 #include<random>
+#include<algorithm>
 
 using std::string;
 using std::vector;
@@ -24,8 +25,8 @@ public:
 	RandomForest();
 	RandomForest(int nEstimators, string criterion, int fit_samples, int max_depth, int min_sample_split, int min_sample_leaf, double ccp_alpha, double min_impurity_decrease);
 	void fit(vector<pair<vector<double>, int>>& datas);
-	vector<double> predict(vector<vector<double>> x);
-	double score(vector<vector<double>> x, vector<int> y);
+	vector<int> predict(vector<vector<double>>& x);
+	double score(vector<vector<double>>& x, vector<int>& y);
 private:
 	int nEstimators = 100;
 	string criterion = "gini";
