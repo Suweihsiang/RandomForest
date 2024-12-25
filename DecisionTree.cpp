@@ -124,7 +124,7 @@ double Decision_Tree::calc_entropy(vector<int>& data, vector<int>&label_counts) 
 	double total = data.size();
 	for (const auto &count : label_counts) {
 		if (count == 0) { continue; }
-		entropy -= count / total * log10(count / total);
+		entropy -= count / total * log2(count / total);
 	}
 	return entropy;
 }
@@ -150,8 +150,8 @@ void Decision_Tree::split(Node* node, vector<pair<vector<double>, int>>& data) {
 		depth = max(--curr_depth, depth);
 		return;
 	}
-	if (node->left->criteria == 0 || curr_depth + 1 > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
-	if (node->right->criteria == 0 || curr_depth + 1 > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
+	if (node->left->criteria == 0 || curr_depth  > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
+	if (node->right->criteria == 0 || curr_depth  > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
 	
 	split(node->left, data);
 	split(node->right,data);
