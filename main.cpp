@@ -2,16 +2,9 @@
 #include"DecisionTree.h"
 #include"RandomForest.h"
 #include<unordered_set>
-#include<Python.h>
-#include"matplotlibcpp.h"
-#include<cuda.h>
-#include<cuda_runtime.h>
 #include<ctime>
-#include "utils.cuh"
 
 using std::unordered_set;
-
-namespace plt = matplotlibcpp;
 
 /*int main(int argc, char** argv) {
     vector<vector<string>>raw_data;
@@ -75,7 +68,7 @@ namespace plt = matplotlibcpp;
     return 0;
 }*/
 
-/*int main(int argc, char** argv) {
+int main(int argc, char** argv) {
     vector<vector<string>>raw_data;
     ifstream ifs(argv[1]);
     string row;
@@ -92,14 +85,14 @@ namespace plt = matplotlibcpp;
     lb.fit(raw_data, { 1 });
     lb.transform(raw_data, { 1 });
     vector<pair<string, vector<string>>> data = lb.get_data();
-    vector<int>y(data[0].second.size(), -1);
-    vector<vector<double>> x(data[0].second.size(), vector<double>(data.size() - 2));
-    for (int i = 0; i < data[0].second.size(); i++) {
-        for (int j = 2; j < data.size(); j++) {
-            x[i][j - 2] = stod(data[j].second[i]);
-        }
-        y[i] = stoi(data[1].second[i]);
-    }
+    //vector<int>y(data[0].second.size(), -1);
+    //vector<vector<double>> x(data[0].second.size(), vector<double>(data.size() - 2));
+    //for (int i = 0; i < data[0].second.size(); i++) {
+    //    for (int j = 2; j < data.size(); j++) {
+    //        x[i][j - 2] = stod(data[j].second[i]);
+    //    }
+    //    y[i] = stoi(data[1].second[i]);
+    //}
     vector<pair<vector<double>, int>> datas;
     for (int i = 0; i < data[0].second.size(); i++) {
         vector<double>x;
@@ -116,6 +109,18 @@ namespace plt = matplotlibcpp;
     //vector<int> res = rf.predict(x);
     //for (int r : res) { cout << r << ","; }
     //cout << endl;
+    random_device rd;
+    mt19937 g(rd());
+    shuffle(datas.begin(), datas.end(), g);
+    vector<pair<vector<double>, int>> test = vector<pair<vector<double>, int>>(datas.begin(), datas.begin() + 169);
+    vector<int>y(test.size(), -1);
+    vector<vector<double>> x(test.size(), vector<double>(data.size() - 2));
+    for (int i = 0; i < test.size(); i++) {
+        for (int j = 2; j < data.size(); j++) {
+            x[i][j - 2] = stod(data[j].second[i]);
+        }
+        y[i] = stoi(data[1].second[i]);
+    }
     cout << rf.score(x, y)<<endl;
     //Decision_Tree dt;
     //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
@@ -137,9 +142,9 @@ namespace plt = matplotlibcpp;
     //cout << score << endl;
 
     return 0;
-}*/
+}
 
-int main(int argc, char** argv) {
+/*int main(int argc, char** argv) {
     vector<vector<string>>raw_data;
     ifstream ifs(argv[1]);
     string row;
@@ -182,9 +187,6 @@ int main(int argc, char** argv) {
     rf.fit(datas);
     clock_t b = clock();
     cout << b - a << "ms" << endl;
-    //vector<int> res = rf.predict(x);
-    //for (int r : res) { cout << r << ","; }
-    //cout << endl;
     random_device rd;
     mt19937 g(rd());
     shuffle(datas.begin(), datas.end(), g);
@@ -198,7 +200,7 @@ int main(int argc, char** argv) {
         y[i] = stoi(data[1].second[i]);
     }
     cout << rf.score(x, y) << endl;
-    //Decision_Tree dt("entropy", 4, 2, 1, 0.0, 0.0);
+    //Decision_Tree dt("entropy", INT_MAX, 2, 1, 0.0, 0.0);
     //dt.set_params({ {"min_sample_split",85},{"ccp_alpha",0.006}, {"min_impurity_decrease",0.01} });
     //dt.get_params();
     //clock_t a = clock();
@@ -218,4 +220,4 @@ int main(int argc, char** argv) {
     //cout << score << endl;
 
     return 0;
-}
+}*/
