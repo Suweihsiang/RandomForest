@@ -24,7 +24,7 @@ class RandomForest {
 public:
 	RandomForest();												//constructor
 	RandomForest(int nEstimators, string criterion, int fit_samples, int max_depth, int min_sample_split, int min_sample_leaf, double ccp_alpha, double min_impurity_decrease);
-	~RandomForest() {}											//destructor
+	~RandomForest();										    //destructor
 	void fit(vector<pair<vector<double>, int>>& datas);
 	vector<int> predict(vector<vector<double>>& x);
 	double score(vector<vector<double>>& x, vector<int>& y);
