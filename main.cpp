@@ -23,7 +23,6 @@ using std::unordered_set;
     lb.fit(raw_data, { 5 });
     lb.transform(raw_data, { 5 });
     vector<pair<string, vector<string>>> data = lb.get_data();
-    map<int, set<string>>classes = lb.get_classes();
     vector<int>y(data[0].second.size(), -1);
     vector<vector<double>> x(data[0].second.size(), vector<double>(data.size()));
     for (int i = 0; i < data[0].second.size(); i++) {

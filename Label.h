@@ -20,19 +20,19 @@ using std::to_string;
 
 class Label {
 public:
-	Label();
-	~Label();
-	void fit(vector<vector<string>>&raw_data,vector<int>cols);
-	void transform(vector<vector<string>>&raw_data, vector<int>cols);
-	void inverse_transform(vector<vector<string>>& raw_data, vector<int>cols);
+	Label();																	//constructor
+	~Label();																	//destructor
+	void fit(vector<vector<string>>&raw_data,vector<int>cols);					//set pair of labels and their number of features
+	void transform(vector<vector<string>>&raw_data, vector<int>cols);			//transform labels to numbers
+	void inverse_transform(vector<vector<string>>& raw_data, vector<int>cols);  //transform numbers to labels
 	vector<pair<string, vector<string>>> get_data() const;
 	map<int, set<string>> get_classes() const;
 	map<int, map<string, string>>get_encoder() const;
 private:
-	string get_key(string &value,int &col);
-	vector<pair<string, vector<string>>>data;
-	map<int, set<string>>classes;
-	map<int, map<string,string>>encoder;
+	string get_key(string &value,int &col);										//get the value's label
+	vector<pair<string, vector<string>>>data;									//feature : data
+	map<int, set<string>>classes;												//feature : labels
+	map<int, map<string,string>>encoder;										//feature : { label : number }
 };
 
 #endif

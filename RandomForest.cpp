@@ -4,8 +4,10 @@ RandomForest::RandomForest() {}
 
 RandomForest::RandomForest(int nEstimators = 100, string criterion = "gini", int fit_samples = -1, int max_depth = INT_MAX, int min_sample_split = 2, int min_sample_leaf = 1, double ccp_alpha = 0.0, double min_impurity_decrease = 0.0) :nEstimators(nEstimators), criterion(criterion), fit_samples(fit_samples), max_depth(max_depth), min_sample_split(min_sample_split), min_sample_leaf(min_sample_leaf), ccp_alpha(ccp_alpha), min_impurity_decrease(min_impurity_decrease) {}
 
+RandomForest::~RandomForest() {}
+
 void RandomForest::fit(vector<pair<vector<double>, int>>& datas) {
-	vector<thread> workers;
+	vector<thread> workers;//collection of threads
 	mutex queue_mutex;
 	condition_variable condition;
 	bool ready = false;
@@ -15,12 +17,14 @@ void RandomForest::fit(vector<pair<vector<double>, int>>& datas) {
 			unique_lock<mutex> lock(queue_mutex);
 			condition.wait(lock, [&]() {return ready; });
 			vector<pair<vector<double>, int>>data_fit;
+			//randomly choose a number of datas to train
 			if (fit_samples != -1) {
 				random_device rd;
 				mt19937 g(rd());
 				shuffle(datas.begin(), datas.end(), g);
 				data_fit = vector<pair<vector<double>, int>>(datas.begin(), datas.begin() + fit_samples);
 			}
+			//
 			else { data_fit = datas; }
 			vector<vector<double>>x(data_fit.size());
 			vector<int>y(data_fit.size());
@@ -42,7 +46,7 @@ void RandomForest::fit(vector<pair<vector<double>, int>>& datas) {
 }
 
 vector<int> RandomForest::predict(vector<vector<double>>& x) {
-	vector<vector<int>>vote(x.size(),vector<int>(trees[0].get_classes_size(),0));
+	vector<vector<int>>vote(x.size(),vector<int>(trees[0].get_classes_size(),0));//vote by each estimator
 	for (int i = 0; i < trees.size(); i++) {
 		vector<int>result = trees[i].predict(x);
 		for (int j = 0; j < x.size(); j++) {

@@ -34,8 +34,8 @@ void Decision_Tree::get_params() {
 
 void Decision_Tree::fit(vector<vector<double>>& x, vector<int>& y) {
 	classes = set<int>(y.begin(), y.end());
-	vector<pair<vector<double>, int>>data_;
-	vector<int>data_idx;
+	vector<pair<vector<double>, int>>data_;//zip x and y
+	vector<int>data_idx;//data index
 	for (int i = 0; i < x.size(); i++) {
 		data_.push_back(make_pair(x[i], y[i]));
 		data_[i].first.insert(data_[i].first.begin(), i);
@@ -45,19 +45,19 @@ void Decision_Tree::fit(vector<vector<double>>& x, vector<int>& y) {
 	Root.parent_number = -1;
 	Root.data_index = data_idx;
 	Root.samples = data_idx.size();
-	vector<int>label_counts = label_count(y);
+	vector<int>label_counts = label_count(y);//count labels' amount
 	Root.criteria = (criterion == "gini") ? gini_impurity(y, label_counts) : calc_entropy(y, label_counts);
 	Root.values = label_counts;
 	Node* node = &Root;
 	split(node,data_);
-	if (ccp_alpha > 0.0) { cost_complexity_pruning_path(); }
-	if (min_impurity_decrease > 0.0) { pruning_min_impurity_decrease(node); }
+	if (ccp_alpha > 0.0) { cost_complexity_pruning_path(); }//post_pruning
+	if (min_impurity_decrease > 0.0) { pruning_min_impurity_decrease(node); }//post_pruning
 }
 
 vector<int> Decision_Tree::predict(vector<vector<double>> x) {
-	vector<int> y_pred(x.size());
-	for (int i = 0; i < x.size(); i++) { x[i].insert(x[i].begin(), i); }
-	predict_node(&Root, x, y_pred);
+	vector<int> y_pred(x.size());//save predict result of each data
+	for (int i = 0; i < x.size(); i++) { x[i].insert(x[i].begin(), i); }//add index
+	predict_node(&Root, x, y_pred);//predict by each node threshold
 	return y_pred;
 }
 
@@ -73,22 +73,22 @@ double Decision_Tree::score(vector<vector<double>> &x, vector<int> &y) {
 vector<pair<double, double>> Decision_Tree::cost_complexity_pruning_path() {
 	map<int, vector<double>>tree_map;
 	Node r;
-	copy_tree(&Root, &r);
-	vector<pair<double, double>>path;
+	copy_tree(&Root, &r);//copy a new tree
+	vector<pair<double, double>>path;//cost complexity pruning path
 	path.push_back({ 0,0 });
 	int iters = 0;
 	while (!r.isLeaf) {
-		construct_treemap(&r, tree_map);
+		construct_treemap(&r, tree_map);//{ node number : parent number , isleaf , criteria * sample , node depth }
 		map<int, vector<double>> best_tree_map;
 		path.push_back({ DBL_MAX,DBL_MAX });
 		iters++;
-		best_tree_map = cost_complexity_pruning(&r, best_tree_map, tree_map, path, iters);
-		if (ccp_alpha > 0.0 && path[iters].first > ccp_alpha) { break; }
-		construct_pruning_tree(r,best_tree_map);
+		best_tree_map = cost_complexity_pruning(&r, best_tree_map, tree_map, path, iters);//get the best pruning method
+		if (ccp_alpha > 0.0 && path[iters].first > ccp_alpha) { break; }//post_pruning
+		construct_pruning_tree(r,best_tree_map);//follow the best tree map to construct pruning tree
 		if (ccp_alpha == 0.0) { export_tree(); }
-		tree_map.clear();
+		tree_map.clear();//prepared for next pruning
 	}
-	if (ccp_alpha > 0.0) { copy_tree(&r, &Root); }
+	if (ccp_alpha > 0.0) { copy_tree(&r, &Root); }//post_pruning
 	return path;
 }
 
@@ -133,17 +133,17 @@ void Decision_Tree::split(Node* node, vector<pair<vector<double>, int>>& data) {
 	static int curr_depth = 1;
 	node->node_layer = curr_depth;
 	if (node->isLeaf) { depth = max(curr_depth, depth); return; }
-	curr_depth++;
+	curr_depth++;//go down to next depth
 	double crit_split = 1;
-	vector<pair<vector<double>, int>>node_data;
+	vector<pair<vector<double>, int>>node_data;//store datas in this node
 	for (const auto &idx : node->data_index) {
 		node_data.push_back(data[idx]);
 	}
 	for (int i = 1; i < data[0].first.size(); i++) {
-		sortX(node_data, i);
-		crit_split = threshold(node, i, crit_split, node_data);
+		sortX(node_data, i);//sort datas ascending according to feature i
+		crit_split = threshold(node, i, crit_split, node_data);//best criterion using this feature to split
 	}
-	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {
+	if (node->left->samples < min_sample_leaf || node->right->samples < min_sample_leaf) {//pre_pruning
 		node->left = nullptr;
 		node->right = nullptr;
 		node->isLeaf = true;
@@ -153,9 +153,9 @@ void Decision_Tree::split(Node* node, vector<pair<vector<double>, int>>& data) {
 	if (node->left->criteria == 0 || curr_depth  > max_depth || node->left->samples < min_sample_split) { node->left->isLeaf = true; }
 	if (node->right->criteria == 0 || curr_depth  > max_depth || node->right->samples < min_sample_split) { node->right->isLeaf = true; }
 	
-	split(node->left, data);
-	split(node->right,data);
-	node->node_depth += max(node->left->node_depth, node->right->node_depth) + 1;
+	split(node->left, data);//split left node
+	split(node->right,data);//split right node
+	node->node_depth += max(node->left->node_depth, node->right->node_depth) + 1;//the depth of this node
 	curr_depth--;
 }
 
@@ -166,43 +166,46 @@ void Decision_Tree::sortX(vector<pair<vector<double>,int>>& data,int &col) {
 double Decision_Tree::threshold(Node* node, int &col, double &crit, vector<pair<vector<double>, int>>& data) {
 	double thres;
 	int j = 0;
-	vector<int>data_l, data_r;
-	vector<int>y_l, y_r;
-	for (int i = 0; i < node->samples; i++) {
+	vector<int>data_l, data_r;//data indices of left node and right node
+	vector<int>y_l, y_r;//labels of left node and right node
+	for (int i = 0; i < node->samples; i++) {//all datas are placed in right node
 		data_r.push_back(data[i].first[0]);
 		y_r.push_back(data[i].second);
 	}
 	int yl_size = 0, yr_size = y_r.size();
 	for (int i = 0; i < data.size();) {
 		bool move = false;
+		//decide split threshold for feature i
 		if (i == 0) { thres = data[i].first[col] - 1; }
 		else { thres = (data[i].first[col] + data[i - 1].first[col]) / 2; }
+		//
 		while (j < data.size() && data[j].first[col] <= thres) {
+			//move data to the left node
 			move = true;
 			data_l.push_back(*(data_r.begin()));
 			data_r.erase(data_r.begin());
 			j++;
 		}
 		
-		if (move) { i = j; }
+		if (move) { i = j; }//we can decide split threshold begin at j+1 since before it are all in the left node
 		i++;
 		double crit_sub = 0, crit_l = 0, crit_r = 0;
-		vector<int>label_l, label_r;
+		vector<int>label_l, label_r;//labels of left node and right node
 		
 		if (data_l.size() > 0) {
-			while (yl_size < data_l.size()) { y_l.push_back(*(y_r.begin())); y_r.erase(y_r.begin()); yl_size++; }
-			label_l = label_count(y_l);
+			while (yl_size < data_l.size()) { y_l.push_back(*(y_r.begin())); y_r.erase(y_r.begin()); yl_size++; }//move labels to left node
+			label_l = label_count(y_l);//amount of each labels of left node
 			crit_l = (criterion == "gini") ? gini_impurity(y_l, label_l) : calc_entropy(y_l, label_l);
 			crit_sub += (double)y_l.size() / node->samples * crit_l;
 		}
 		
 		if (data_r.size() > 0) {
-			label_r = label_count(y_r);
+			label_r = label_count(y_r);//amount of each labels of right node
 			crit_r = (criterion == "gini") ? gini_impurity(y_r, label_r) : calc_entropy(y_r, label_r);
 			crit_sub += (double)y_r.size() / node->samples * crit_r;
 		}
 		
-		if (crit_sub <= crit) {
+		if (crit_sub <= crit) {//is this split norm is the best currently ?
 			crit = crit_sub;
 			node->threshold = thres;
 			node->feature_index = col - 1;
@@ -233,7 +236,7 @@ void Decision_Tree::predict_node(Node* node, vector<vector<double>>& x, vector<i
 		auto cls = max_element(node->values.begin(), node->values.end()) - node->values.begin();
 		for (int i = 0; i < x.size(); i++) {
 			int idx = x[i][0];
-			y_pred[idx] = cls;
+			y_pred[idx] = cls;//get predict label
 		}
 	}
 	else {
@@ -247,8 +250,8 @@ void Decision_Tree::predict_node(Node* node, vector<vector<double>>& x, vector<i
 				x_left.push_back(x[i]);
 			}
 		}
-		predict_node(node->left, x_left, y_pred);
-		predict_node(node->right, x_right, y_pred);
+		predict_node(node->left, x_left, y_pred);//predcit at left node
+		predict_node(node->right, x_right, y_pred);//predict at right node
 	}
 	return;
 }
@@ -275,7 +278,7 @@ void Decision_Tree::copy_tree(Node* tree, Node* new_tree) {
 	return;
 }
 
-void Decision_Tree::construct_treemap(Node *node, map<int, vector<double>>&tree_map) {
+void Decision_Tree::construct_treemap(Node *node, map<int, vector<double>>&tree_map) {//{ node number : parent number , isleaf , criteria * sample , node depth }
 	tree_map[node->number] = vector<double>{ static_cast<double>(node->parent_number),static_cast<double>(node->isLeaf),node->criteria * node->samples,static_cast<double>(node->node_depth)};
 	if (node->isLeaf) { return; }
 	construct_treemap(node->left, tree_map);
@@ -283,31 +286,31 @@ void Decision_Tree::construct_treemap(Node *node, map<int, vector<double>>&tree_
 }
 
 map<int, vector<double>> Decision_Tree::cost_complexity_pruning(Node *node, map<int, vector<double>> &best_tree_map, map<int, vector<double>> &tree_map, vector<pair<double, double>>&path,int iters) {
-	if (tree_map[node->number][1]) { return best_tree_map; }
-	map<int, vector<double>>cp_tree_map = tree_map;
-	cp_tree_map[node->number][1] = 1;
+	if (tree_map[node->number][1]) { return best_tree_map; }//if node is leaf
+	map<int, vector<double>>cp_tree_map = tree_map;//{ node number : parent number , isleaf , criteria * sample , node depth }
+	cp_tree_map[node->number][1] = 1;//node is leaf, that is, prune the node
 	for (auto &d : cp_tree_map) {
-		if (d.first > node->number) {
-			if (findparent(d.first, cp_tree_map, node->number) == node->number) { d.second[1] = -1; }
+		if (d.first > node->number) {//under the node
+			if (findparent(d.first, cp_tree_map, node->number) == node->number) { d.second[1] = -1; }//all the child node are pruning
 		}
 	}
 	vector<pair<int, vector<double>>>result(cp_tree_map.begin(), cp_tree_map.end());
-	sort(result.begin(), result.end(), [](pair<int,vector<double>>& a, pair<int, vector<double>>& b) {return a.second[1] > b.second[1]; });
+	sort(result.begin(), result.end(), [](pair<int,vector<double>>& a, pair<int, vector<double>>& b) {return a.second[1] > b.second[1]; });//node is leaf is put in front
 	double impurity = 0.0,ccp_alpha = 0.0;
 	for (const auto d : result) {
 		if (d.second[1] < 1) { break; }
-		impurity += d.second[2];
+		impurity += d.second[2];//calculate impurity
 	}
 	double pre_impurity = path[iters - 1].second;
-	impurity /= Root.samples;
-	ccp_alpha = (impurity - pre_impurity) / cp_tree_map[node->number][3];
-	if (ccp_alpha > path[iters - 1].first && ccp_alpha < path[iters].first) { 
+	impurity /= Root.samples;//calculate impurity
+	ccp_alpha = (impurity - pre_impurity) / cp_tree_map[node->number][3];//calculate ccp_alpha
+	if (ccp_alpha > path[iters - 1].first && ccp_alpha < path[iters].first) { //best pruning
 		path[iters].first = ccp_alpha; 
 		path[iters].second = impurity;
 		best_tree_map = cp_tree_map;
 	}
-	best_tree_map = cost_complexity_pruning(node->left,best_tree_map, tree_map, path,iters);
-	best_tree_map = cost_complexity_pruning(node->right,best_tree_map, tree_map, path,iters);
+	best_tree_map = cost_complexity_pruning(node->left,best_tree_map, tree_map, path,iters);//find left node's best tree map
+	best_tree_map = cost_complexity_pruning(node->right,best_tree_map, tree_map, path,iters);//find right node's best tree map
 	return best_tree_map;
 }
 
@@ -325,7 +328,7 @@ void Decision_Tree::construct_pruning_tree(Node &tree,map<int, vector<double>>& 
 
 void Decision_Tree::traverse_node(Node* node, map<int, vector<double>>& tree_map,bool& pruning) {
 	if (node->isLeaf) { return; }
-	if (tree_map[node->number][1] == 1 && !(node->isLeaf)) {
+	if (tree_map[node->number][1] == 1 && !(node->isLeaf)) {//prune the node
 		node->left = nullptr;
 		node->right = nullptr;
 		node->isLeaf = true;
