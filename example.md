@@ -1,9 +1,9 @@
 實作
-
-1.資料集使用breast_cancer.csv，模型使用Decision_tree，不更改參數設定  
-(1)參數：criterion = gini,max_depth = 2147483647,min_sample_split = 2,min_sample_leaf = 1,ccp_alpha = 0,min_impurity_decrease = 0  
-(2)執行時間：422ms  
-(3)決策樹：  
+==========================================================================================
+## 1.資料集使用breast_cancer.csv，模型使用Decision_tree，不更改參數設定  
+### (1)參數：criterion = gini,max_depth = 2147483647,min_sample_split = 2,min_sample_leaf = 1,ccp_alpha = 0,min_impurity_decrease = 0  
+### (2)執行時間：422ms  
+### (3)決策樹：  
   
 **node number = 0**  
 node parent number = -1  
@@ -412,14 +412,14 @@ node criteria = 0
 node sample size = 168  
 node label count : [0,168]  
   
-(4)使用sklearn之DecisionTreeClassifier之決策樹：  
-可以與使用C++產生之決策樹之Split threashold、node sample size、node label count比對，但Split threashold可能因逐項比對特徵時因順序之不同而有異，但由於分割後之node criteria相同，故分割之結果(sample size、label count)亦相同  
+### (4)使用sklearn之DecisionTreeClassifier之決策樹：  
+可以與使用C++產生之決策樹之Split threashold、node sample size、node label count比對，但Split threashold可能因逐項比對特徵時因順序之不同而有異，但由於分割之criteria相同，故分割之結果(sample size、label count)亦相同  
 ![image](https://github.com/Suweihsiang/RandomForest/blob/main/image/breast_cancer1.png)  
   
-2.資料集使用breast_cancer.csv，模型使用Decision_tree：  
-(1)參數設定如下：criterion = gini,max_depth = 2147483647,min_sample_split = 85,min_sample_leaf = 1,ccp_alpha = 0.006,min_impurity_decrease = 0.01  
-(2)執行時間：419ms  
-(3)決策樹：  
+## 2.資料集使用breast_cancer.csv，模型使用Decision_tree：  
+### (1)參數設定如下：criterion = gini,max_depth = 2147483647,min_sample_split = 85,min_sample_leaf = 1,ccp_alpha = 0.006,min_impurity_decrease = 0.01  
+### (2)執行時間：419ms  
+### (3)決策樹：  
   
 **node number = 0**  
 node parent number = -1  
@@ -487,11 +487,11 @@ node sample size = 173
 node label count : [2,171]  
   
     
-(4)使用sklearn之DecisionTreeClassifier之決策樹：  
-可以與使用C++產生之決策樹之Split threashold、node sample size、node label count比對，但Split threashold可能因逐項比對特徵時因順序之不同而有異，但由於分割後之node criteria相同，故分割之結果(sample size、label count)亦相同  
+### (4)使用sklearn之DecisionTreeClassifier之決策樹：  
+可以與使用C++產生之決策樹之Split threashold、node sample size、node label count比對，但Split threashold可能因逐項比對特徵時因順序之不同而有異，但由於分割之criteria相同，故分割之結果(sample size、label count)亦相同  
 ![image](https://github.com/Suweihsiang/RandomForest/blob/main/image/breast_cancer2.png)  
   
-3.資料集使用breast_cancer.csv，模型使用RandomForest  
-(1)參數設定如下：：nEstimators = 100,criterion = gini,fit_samples = 400,max_depth = 2147483647,min_sample_split = 85,min_sample_leaf = 1,ccp_alpha = 0.006,min_impurity_decrease = 0.01  
-(2)執行時間：28498ms  
-(3)使用原資料集隨機抽170筆資料進行測試，模型分數為0.923077  
+## 3.資料集使用breast_cancer.csv，模型使用RandomForest  
+### (1)參數設定如下：：nEstimators = 100,criterion = gini,fit_samples = 400,max_depth = 2147483647,min_sample_split = 85,min_sample_leaf = 1,ccp_alpha = 0.006,min_impurity_decrease = 0.01  
+### (2)執行時間：28498ms  
+### (3)使用原資料集隨機抽170筆資料進行測試，模型分數為0.923077  
